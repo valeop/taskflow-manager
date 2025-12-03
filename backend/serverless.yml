@@ -1,17 +1,17 @@
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+org: udea20252
+app: taskmaster-api
 service: taskmaster-api
-
-frameworkVersion: '4'
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
+  timeout: 10
   region: us-east-1
-  stage: ${opt:stage, 'dev'}
-  
-  # Variables de entorno globales
+
   environment:
-    TASKS_TABLE: ${self:service}-tasks-${self:provider.stage}
-    
+    TASKS_TABLE: Tasks
+
   # Permisos IAM para las funciones Lambda
   iam:
     role:
@@ -27,6 +27,9 @@ provider:
           Resource:
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TASKS_TABLE}"
 
+plugins:
+  - serverless-offline
+
 functions:
   # GET /tasks - Obtener todas las tareas
   getTasks:
@@ -35,7 +38,7 @@ functions:
       - httpApi:
           path: /tasks
           method: get
-          
+
   # GET /tasks/{id} - Obtener una tarea específica
   getTask:
     handler: handler.getTask
@@ -43,7 +46,7 @@ functions:
       - httpApi:
           path: /tasks/{id}
           method: get
-          
+
   # POST /tasks - Crear nueva tarea
   createTask:
     handler: handler.createTask
@@ -51,7 +54,7 @@ functions:
       - httpApi:
           path: /tasks
           method: post
-          
+
   # PUT /tasks/{id} - Actualizar tarea
   updateTask:
     handler: handler.updateTask
@@ -59,7 +62,7 @@ functions:
       - httpApi:
           path: /tasks/{id}
           method: put
-          
+
   # DELETE /tasks/{id} - Eliminar tarea
   deleteTask:
     handler: handler.deleteTask
@@ -76,16 +79,23 @@ resources:
       Properties:
         TableName: ${self:provider.environment.TASKS_TABLE}
         AttributeDefinitions:
-          - AttributeName: taskId
+          - AttributeName: PK
             AttributeType: S
         KeySchema:
-          - AttributeName: taskId
+          - AttributeName: PK
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
 
-plugins:
-  - serverless-offline
-
 custom:
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+    tables:
+      - TasksTable
+
   serverless-offline:
     httpPort: 3001
