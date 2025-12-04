@@ -52,6 +52,12 @@ const generateUUID = () => {
     return v.toString(16);
   });
 };
+/**
+ * GET / - Obtener mensaje inicial (Raíz)
+ */
+module.exports.getRoot = async () => {
+  return response(200, { message: 'API de Gestión de Tareas está en funcionamiento' });
+}
 
 /**
  * GET /tasks - Obtener todas las tareas
@@ -122,6 +128,7 @@ module.exports.createTask = async (event) => {
     const timestamp = new Date().toISOString();
     const task = {
       PK: `TASK#${taskId}`,
+      taskId: taskId,
       title: data.title,
       description: data.description || '',
       priority: data.priority,
